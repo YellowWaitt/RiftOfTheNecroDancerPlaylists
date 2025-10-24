@@ -10,11 +10,11 @@
 - **Editor tracks** : a playlist that contains all the local tracks not available in the workshop i.e. the ones you are working on with the editor.
 - **All tracks** : you still have access to a playlist that contains all your tracks like before.
 
-You may want to have a look at the [Rift Of The NecroManager](https://github.com/96-LB/RiftOfTheNecroManager) mod to have in-game access to the mod settings.
+You may also want to have a look at the [Rift Of The NecroManager](https://github.com/96-LB/RiftOfTheNecroManager) mod to have in-game access to the mod settings.
 
 ## Installation
 
-**Rift Of The NecroDancer Playlists** runs on BepInEx 5. In order to use this mod, you must first install BepInEx into your Rift of the NecroDancer game folder. A more detailed guide can be found [here](https://docs.bepinex.dev/articles/user_guide/installation/index.html), but a summary is provided below. If BepInEx is already installed, you can skip the next subsection.
+**Rift Of The NecroDancer Playlists** runs on BepInEx 5. In order to use this mod, you must first install BepInEx into your Rift Of The NecroDancer game folder. A more detailed guide can be found [here](https://docs.bepinex.dev/articles/user_guide/installation/index.html), but a summary is provided below. If BepInEx is already installed, you can skip the next subsection.
 
 ### Installing BepInEx
 
@@ -26,16 +26,24 @@ You may want to have a look at the [Rift Of The NecroManager](https://github.com
 
     > ℹ️ For example, if you use 64-bit Windows, download `BepInEx_win_x64_5.X.Y.Z.zip`.
 
-4. Extract the contents of the `.zip` file into your Rift of the NecroDancer game folder.
+4. Extract the contents of the `.zip` file into your Rift Of The NecroDancer game folder.
 
     > ℹ️ You can find this folder by right clicking on the game in your Steam library and clicking 'Properties'. Then navigate to 'Installed Files' and click 'Browse'.
 
 6. If you're on Mac or Linux, configure Steam to run BepInEx when you launch your game. Follow the guide [here](https://docs.bepinex.dev/articles/advanced/steam_interop.html).
 
-7. Run Rift of the NecroDancer to set up BepInEx.
+7. Run Rift Of The NecroDancer to set up BepInEx.
 
     > ℹ️ If done correctly, your `BepInEx` folder should now contain several subfolders, such as `BepInEx/plugins`.
 
 ### Installing **Rift Of The NecroDancer Playlists**
 
-🛠️ TODO
+1. Navigate to the latest release of  **Rift Of The NecroDancer Playlists** [here](https://github.com/YellowWaitt/RiftOfTheNecroDancerPlaylists/releases/latest).
+
+2. Expand the "Assets" tab at the bottom and download the `RiftOfTheNecroDancerPlaylists.zip` archive.
+
+3. Extract the archive in the `BepInEx/plugins` directory inside the Rift Of The NecroDancer game folder.
+
+   > ℹ️ You can find this folder by right clicking on the game in your Steam library and clicking 'Properties'. Then navigate to 'Installed Files' and click 'Browse'.
+
+4. Check that your mod is working by launching the game and opening the Custom Music menu. You should see that your tracks have been replaced by playlists !
