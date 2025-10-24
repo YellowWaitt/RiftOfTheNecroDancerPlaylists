@@ -1,0 +1,8 @@
+LOCALIZATION KEY,English,CATEGORY (d),LOC GROUP (d),LOC STATE (d),French,Italian,German,Spanish_Spain,Spanish_LATAM,Portuguese_Brazil,Russian,Chinese_Simplified,Chinese_Traditional,Japanese,Korean,Pseudo_English,Loc_Keys
+ROTNDP_PlaylistOneTrack,   1 track,ROTNDP,,,   1 morceau,,,,,,,,,,,,
+ROTNDP_PlaylistSize,"{0,4} tracks",ROTNDP,,,"{0,4} morceaux",,,,,,,,,,,,
+ROTNDP_AllTracks,All Tracks,ROTNDP,,,Tout les morceaux,,,,,,,,,,,,
+ROTNDP_EditorTracks,Editor Tracks,ROTNDP,,,Morceaux de l'éditeur,,,,,,,,,,,,
+ROTNDP_NewTracks,New,ROTNDP,,,Nouveau,,,,,,,,,,,,
+ROTNDP_UncompletedTracks,Uncompleted,ROTNDP,,,Imbattus,,,,,,,,,,,,
+ROTNDP_CyclePlaylistMode,Change Playlists,ROTNDP,,,Changer de playlists,,,,,,,,,,,,
