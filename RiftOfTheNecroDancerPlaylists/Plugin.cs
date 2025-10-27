@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -63,7 +64,7 @@ public class Plugin : BaseUnityPlugin
 
         public Paths()
         {
-            Plugin = System.IO.Path.Combine(BepInEx.Paths.PluginPath, MyPluginInfo.PLUGIN_NAME);
+            Plugin = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Cache = System.IO.Path.Combine(Plugin, "cache");
             Assets = System.IO.Path.Combine(Plugin, "assets");
             Settings = System.IO.Path.Combine(Plugin, "settings.json");
