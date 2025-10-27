@@ -27,11 +27,11 @@ internal static class CustomTrackSelectionOptionGroupPatch
             var newNavigationAmout = 0;
             if (____selectionIndex + navigationAmount < 0)
             {
-                newNavigationAmout = (____trackMetaData.Count + navigationAmount) % ____trackMetaData.Count;
+                newNavigationAmout = ____trackMetaData.Count - (-navigationAmount % ____trackMetaData.Count);
             }
             else if (____selectionIndex + navigationAmount >= ____trackMetaData.Count)
             {
-                newNavigationAmout = (navigationAmount - ____trackMetaData.Count) % ____trackMetaData.Count;
+                newNavigationAmout = -____trackMetaData.Count + (navigationAmount % ____trackMetaData.Count);
             }
             if (newNavigationAmout != 0)
             {
