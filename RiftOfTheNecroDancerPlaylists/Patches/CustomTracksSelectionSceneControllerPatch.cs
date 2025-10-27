@@ -112,6 +112,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
 
         playlistModeLabel.transform.SetSiblingIndex(modifiersLabel.transform.GetSiblingIndex() + 1);
         _playlistModeLabel = playlistModeLabel;
+        _playlistModeLabel.SetActive(!InsidePlaylist());
     }
 
     [HarmonyPrefix]
