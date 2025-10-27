@@ -13,6 +13,7 @@ using Shared.UGC.Placeholder;
 using Shared.UGC.Steam;
 using TicToc.Localization;
 using TicToc.Localization.Components;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -65,6 +66,19 @@ internal static class CustomTracksSelectionSceneControllerPatch
         _fillInTrackDetails.Invoke(instance, []);
     }
 
+    private static void DisplayPlaylistModeOrName(TMP_Text sortingOrderText)
+    {
+        const string separator = "    ―    ";
+        if (InsidePlaylist())
+        {
+            sortingOrderText.text += separator + _selectedPlaylist.Playlist;
+        }
+        else
+        {
+            sortingOrderText.text += separator + Localizer.GetText($"ROTNDP_PlaylistMode{_playlistMode.ToString()}Label");
+        }
+    }
+
     [HarmonyPrefix]
     [HarmonyPatch("Start")]
     private static bool Start_Prefix()
@@ -80,8 +94,15 @@ internal static class CustomTracksSelectionSceneControllerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("Start")]
-    private static void Start_Postfix(GameObject ____collectionsMenuKeybindingLabel)
+    private static System.Collections.IEnumerator Start_Postfix(
+        System.Collections.IEnumerator result,
+        GameObject ____collectionsMenuKeybindingLabel,
+        TMP_Text ____sortingOrderText
+    )
     {
+        while (result.MoveNext())
+            yield return result.Current;
+
         // This try to mimic the layout from TrackSelectionSceneController but it is not perfect
         var modifiersLabel = ____collectionsMenuKeybindingLabel;
         var footer = modifiersLabel.GetComponent<Transform>().parent;
@@ -113,6 +134,8 @@ internal static class CustomTracksSelectionSceneControllerPatch
         playlistModeLabel.transform.SetSiblingIndex(modifiersLabel.transform.GetSiblingIndex() + 1);
         _playlistModeLabel = playlistModeLabel;
         _playlistModeLabel.SetActive(!InsidePlaylist());
+
+        DisplayPlaylistModeOrName(____sortingOrderText);
     }
 
     [HarmonyPrefix]
@@ -161,7 +184,10 @@ internal static class CustomTracksSelectionSceneControllerPatch
 
     [HarmonyPostfix]
     [HarmonyPatch("HandleCycleTrackSortingOrder")]
-    private static void HandleCycleTrackSortingOrder_Postfix(TrackSortingOrder ____sortingOrder)
+    private static void HandleCycleTrackSortingOrder_Postfix(
+        TrackSortingOrder ____sortingOrder,
+        TMP_Text ____sortingOrderText
+    )
     {
         if (InsidePlaylist() || _playlistMode == PlaylistMode.NoPlaylists)
         {
@@ -171,6 +197,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
         {
             _sortingOrders.PlaylistsSortingOrder = ____sortingOrder;
         }
+        DisplayPlaylistModeOrName(____sortingOrderText);
     }
 
     [HarmonyPostfix]
