@@ -215,6 +215,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
         );
     }
 
+    // TODO: build the playlists only when necessary
     [HarmonyPrefix]
     [HarmonyPatch("HandleTrackMetadataReSort")]
     private static bool HandleTrackMetadataReSort_Prefix(List<ITrackMetadata> ____customTrackMetadatas)
@@ -227,16 +228,18 @@ internal static class CustomTracksSelectionSceneControllerPatch
             case PlaylistMode.ArtistPlaylists:
                 _playlists = new PlaylistCollection(
                     ____customTrackMetadatas,
-                    (track) => track.ArtistName,
-                    UserConfig.MinTracksToShowArtistPlaylist.Value
+                    (track) => track.Category == TrackCategory.UgcLocal ? null : track.ArtistName,
+                    minSizeToShow: UserConfig.MinTracksToShowArtistPlaylist.Value,
+                    parseNames: true
                 );
                 AddDefaultPlaylists(____customTrackMetadatas);
                 break;
             case PlaylistMode.StageCreatorPlaylists:
                 _playlists = new PlaylistCollection(
                     ____customTrackMetadatas,
-                    (track) => track.StageCreatorName,
-                    UserConfig.MinTracksToShowCreatorPlaylist.Value
+                    (track) => track.Category == TrackCategory.UgcLocal ? null : track.StageCreatorName,
+                    minSizeToShow: UserConfig.MinTracksToShowCreatorPlaylist.Value,
+                    parseNames: true
                 );
                 AddDefaultPlaylists(____customTrackMetadatas);
                 break;
@@ -268,8 +271,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
                     {
                         return Localizer.GetText("ROTNDP_AllTracks");
                     }
-                },
-            1
+                }
         );
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_EditorTracks"), -0.9);
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_AllTracks"), -0.8);
@@ -290,8 +292,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
                     {
                         return null;
                     }
-                },
-            1
+                }
         );
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_NewTracks"), -0.7);
         _playlists.Extend(playlists);
@@ -311,8 +312,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
                    {
                        return null;
                    }
-               },
-           1
+               }
        );
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_UncompletedTracks"), -0.6);
         _playlists.Extend(playlists);
@@ -465,16 +465,16 @@ internal static class CustomTracksSelectionSceneControllerPatch
 
     private struct PlaylistCollection
     {
-        private Dictionary<string, Playlist> _playlists;
+        private Dictionary<string, Playlist> _playlists = [];
 
         public PlaylistCollection(
             List<ITrackMetadata> trackMetadatas,
             Func<ITrackMetadata, string> getKey,
-            int minSizeToShow
+            int minSizeToShow = 1,
+            bool parseNames = false
         )
         {
-            _playlists = [];
-            BuildPlaylists(trackMetadatas, getKey, minSizeToShow);
+            BuildPlaylists(trackMetadatas, getKey, minSizeToShow, parseNames);
         }
 
         public bool Contains(string playlistName)
@@ -541,26 +541,43 @@ internal static class CustomTracksSelectionSceneControllerPatch
         private void BuildPlaylists(
             List<ITrackMetadata> trackMetadatas,
             Func<ITrackMetadata, string> getKey,
-            int minSizeToShow
+            int minSizeToShow,
+            bool parseNames
         )
         {
             var playlists = new Dictionary<string, List<ITrackMetadata>>();
-            foreach (ITrackMetadata track in trackMetadatas)
+            if (parseNames)
             {
-                var key = getKey(track);
-                if (key is null)
+                var nameParser = new NameParser();
+                foreach (ITrackMetadata track in trackMetadatas)
                 {
-                    continue;
+                    var key = getKey(track);
+                    if (key is null) continue;
+                    nameParser.ParseName(key);
                 }
-                if (playlists.ContainsKey(key))
+                nameParser.MatchPendingAbbreviations();
+
+                foreach (ITrackMetadata track in trackMetadatas)
                 {
-                    playlists[key].Add(track);
-                }
-                else
-                {
-                    playlists[key] = [track];
+                    var key = getKey(track);
+                    if (key is null) continue;
+                    foreach (var match in nameParser.GetMatches(key))
+                    {
+                        playlists.GetOrCreate(match).Add(track);
+                    }
                 }
             }
+            else
+            {
+                foreach (ITrackMetadata track in trackMetadatas)
+                {
+                    var key = getKey(track);
+                    if (key is null) continue;
+                    playlists.GetOrCreate(key).Add(track);
+
+                }
+            }
+
             foreach (KeyValuePair<string, List<ITrackMetadata>> entry in playlists)
             {
                 var playlistName = entry.Key;
