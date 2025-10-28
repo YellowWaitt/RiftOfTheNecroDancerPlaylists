@@ -17,17 +17,17 @@ internal class Settings
     public void Serialize()
     {
         var json = JsonUtility.ToJson(this, true);
-        File.WriteAllText(Plugin.Path.Settings, json, Encoding.UTF8);
+        File.WriteAllText(Plugin.Path.SettingsJson, json, Encoding.UTF8);
     }
 
     public static Settings Deserialize()
     {
-        if (!File.Exists(Plugin.Path.Settings))
+        if (!File.Exists(Plugin.Path.SettingsJson))
         {
             return new Settings();
         }
 
-        var json = File.ReadAllText(Plugin.Path.Settings, Encoding.UTF8);
+        var json = File.ReadAllText(Plugin.Path.SettingsJson, Encoding.UTF8);
         return JsonUtility.FromJson<Settings>(json);
     }
 }

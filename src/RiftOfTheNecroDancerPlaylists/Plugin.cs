@@ -14,8 +14,9 @@ namespace RiftOfTheNecroDancerPlaylists;
 public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Logger;
-    internal static Paths Path = new();
-    internal static Settings Settings;
+    internal static readonly Paths Path = new();
+    internal static readonly UserConfig UserConfig = new();
+    internal static readonly Settings Settings = Settings.Deserialize();
 
     private static string[] _gameTestedVersions = ["1.8.0"];
 
@@ -45,7 +46,6 @@ public class Plugin : BaseUnityPlugin
             );
         }
 
-        Settings = Settings.Deserialize();
         AlbumArtCache.Initialize();
         Localizer.AddKeysFromLocalFile(System.IO.Path.Combine(Path.Assets, "localization.csv"));
 
@@ -60,14 +60,14 @@ public class Plugin : BaseUnityPlugin
         public string Plugin;
         public string Cache;
         public string Assets;
-        public string Settings;
+        public string SettingsJson;
 
         public Paths()
         {
             Plugin = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Cache = System.IO.Path.Combine(Plugin, "cache");
             Assets = System.IO.Path.Combine(Plugin, "assets");
-            Settings = System.IO.Path.Combine(Plugin, "settings.json");
+            SettingsJson = System.IO.Path.Combine(Plugin, "settings.json");
 
             Directory.CreateDirectory(Cache);
         }

@@ -25,20 +25,20 @@ internal static class CustomTracksSelectionSceneControllerPatch
     private const string _playlistIdPrefix = "__playlist_id_";
     private const string _allPlaylistId = "__playlist_all";
 
-    private static PlaylistCollection _playlists;
+    private static PlaylistCollection _playlistCollection;
     private static PlaylistMode _playlistMode;
     private static SelectedPlaylist _selectedPlaylist = new();
     private static SortingOrders _sortingOrders;
 
     private static GameObject _playlistModeLabel;
 
-    private static MethodInfo _fillInTrackDetails = Utils.Method<CustomTracksSelectionSceneController>("FillInTrackDetails");
-    private static MethodInfo _fillInTracksToDisplayForCurrentDifficulty = Utils.Method<CustomTracksSelectionSceneController>("FillInTracksToDisplayForCurrentDifficulty");
-    private static MethodInfo _getTrackMetadataIndexFromLevelId = Utils.Method<CustomTracksSelectionSceneController>("GetTrackMetadataIndexFromLevelId");
-    private static MethodInfo _handleCycleTrackSortingOrder = Utils.Method<CustomTracksSelectionSceneController>("HandleCycleTrackSortingOrder");
+    private static readonly MethodInfo _fillInTrackDetails = Utils.Method<CustomTracksSelectionSceneController>("FillInTrackDetails");
+    private static readonly MethodInfo _fillInTracksToDisplayForCurrentDifficulty = Utils.Method<CustomTracksSelectionSceneController>("FillInTracksToDisplayForCurrentDifficulty");
+    private static readonly MethodInfo _getTrackMetadataIndexFromLevelId = Utils.Method<CustomTracksSelectionSceneController>("GetTrackMetadataIndexFromLevelId");
+    private static readonly MethodInfo _handleCycleTrackSortingOrder = Utils.Method<CustomTracksSelectionSceneController>("HandleCycleTrackSortingOrder");
 
-    private static FieldInfo _actionBindingView_associatedAction = Utils.Field<ActionBindingView>("_associatedAction");
-    private static FieldInfo _customTrackSelectionOptionGroup_infiniteScrollBar = Utils.Field<CustomTrackSelectionOptionGroup>("_infiniteScrollBar");
+    private static readonly FieldInfo _actionBindingView_associatedAction = Utils.Field<ActionBindingView>("_associatedAction");
+    private static readonly FieldInfo _customTrackSelectionOptionGroup_infiniteScrollBar = Utils.Field<CustomTrackSelectionOptionGroup>("_infiniteScrollBar");
 
 
     private static string PlaylistIdFromName(string name)
@@ -115,9 +115,6 @@ internal static class CustomTracksSelectionSceneControllerPatch
         modifierLayout.spacing = 10;
         modifierLayout.childScaleWidth = true;
         modifierLayout.reverseArrangement = true;
-        // UnityEngine.Object.Destroy(modifiersLabel.transform.Find("Text").GetComponent<ContentSizeFitter>());
-        // var modifierFitter = modifiersLabel.AddComponent<ContentSizeFitter>();
-        // modifierFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         var playlistModeLabel = UnityEngine.Object.Instantiate(modifiersLabel.gameObject, footer);
         playlistModeLabel.name = "CyclePlaylistMode";
@@ -223,22 +220,22 @@ internal static class CustomTracksSelectionSceneControllerPatch
         switch (_playlistMode)
         {
             case PlaylistMode.NoPlaylists:
-                _playlists = new PlaylistCollection(____customTrackMetadatas, (track) => _allPlaylistId, 0);
+                _playlistCollection = new PlaylistCollection(____customTrackMetadatas, (track) => _allPlaylistId, 0);
                 break;
             case PlaylistMode.ArtistPlaylists:
-                _playlists = new PlaylistCollection(
+                _playlistCollection = new PlaylistCollection(
                     ____customTrackMetadatas,
                     (track) => track.Category == TrackCategory.UgcLocal ? null : track.ArtistName,
-                    minSizeToShow: UserConfig.MinTracksToShowArtistPlaylist.Value,
+                    minSizeToShow: Plugin.UserConfig.MinTracksToShowArtistPlaylist.Value,
                     parseNames: true
                 );
                 AddDefaultPlaylists(____customTrackMetadatas);
                 break;
             case PlaylistMode.StageCreatorPlaylists:
-                _playlists = new PlaylistCollection(
+                _playlistCollection = new PlaylistCollection(
                     ____customTrackMetadatas,
                     (track) => track.Category == TrackCategory.UgcLocal ? null : track.StageCreatorName,
-                    minSizeToShow: UserConfig.MinTracksToShowCreatorPlaylist.Value,
+                    minSizeToShow: Plugin.UserConfig.MinTracksToShowCreatorPlaylist.Value,
                     parseNames: true
                 );
                 AddDefaultPlaylists(____customTrackMetadatas);
@@ -251,7 +248,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
     {
         AddLocalAndNonLocalPlaylists(customTrackMetadatas);
         AddNewTracksPlaylist(customTrackMetadatas);
-        if (UserConfig.ShowUncompletedTracksPlaylist.Value)
+        if (Plugin.UserConfig.ShowUncompletedTracksPlaylist.Value)
         {
             AddUncompletedTracksPlaylist(customTrackMetadatas);
         }
@@ -275,7 +272,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
         );
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_EditorTracks"), -0.9);
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_AllTracks"), -0.8);
-        _playlists.Extend(playlists);
+        _playlistCollection.Extend(playlists);
     }
 
     private static void AddNewTracksPlaylist(List<ITrackMetadata> customTrackMetadatas)
@@ -295,7 +292,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
                 }
         );
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_NewTracks"), -0.7);
-        _playlists.Extend(playlists);
+        _playlistCollection.Extend(playlists);
     }
 
     private static void AddUncompletedTracksPlaylist(List<ITrackMetadata> customTrackMetadatas)
@@ -315,7 +312,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
                }
        );
         playlists.SetSortOrder(Localizer.GetText("ROTNDP_UncompletedTracks"), -0.6);
-        _playlists.Extend(playlists);
+        _playlistCollection.Extend(playlists);
     }
 
     [HarmonyPrefix]
@@ -362,7 +359,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
         List<ITrackMetadata> trackMetadataList = [];
         if (InsidePlaylist())
         {
-            DisplayTracks(ref trackMetadataList, _playlists.Get(_selectedPlaylist.Playlist), ____selectedDifficulty, ____sortingOrder);
+            DisplayTracks(ref trackMetadataList, _playlistCollection.Get(_selectedPlaylist.Playlist), ____selectedDifficulty, ____sortingOrder);
         }
         else
         {
@@ -370,13 +367,13 @@ internal static class CustomTracksSelectionSceneControllerPatch
             switch (_playlistMode)
             {
                 case PlaylistMode.NoPlaylists:
-                    DisplayTracks(ref trackMetadataList, _playlists.Get(_allPlaylistId), ____selectedDifficulty, ____sortingOrder);
+                    DisplayTracks(ref trackMetadataList, _playlistCollection.Get(_allPlaylistId), ____selectedDifficulty, ____sortingOrder);
                     break;
                 case PlaylistMode.ArtistPlaylists:
-                    DisplayPlaylists(ref trackMetadataList, _playlists);
+                    DisplayPlaylists(ref trackMetadataList, _playlistCollection);
                     break;
                 case PlaylistMode.StageCreatorPlaylists:
-                    DisplayPlaylists(ref trackMetadataList, _playlists);
+                    DisplayPlaylists(ref trackMetadataList, _playlistCollection);
                     break;
             }
         }
@@ -401,7 +398,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
         {
             if (track.Difficulties.Contains(difficulty))
             {
-                if (UserConfig.RoundBpm.Value)
+                if (Plugin.UserConfig.RoundBpm.Value)
                 {
                     var trackMetadata = new MutableTrackMetadata(track);
                     trackMetadata.DifficultyInfo[difficulty].BeatsPerMinute =
@@ -413,7 +410,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
                     trackMetadataList.Add(track);
                 }
             }
-            else if (UserConfig.TrackInAllDifficulties.Value)
+            else if (Plugin.UserConfig.TrackInAllDifficulties.Value)
             {
                 trackMetadataList.Add(new MutableTrackMetadata(track)
                 {
@@ -429,15 +426,15 @@ internal static class CustomTracksSelectionSceneControllerPatch
     private static void DisplayPlaylists(ref List<ITrackMetadata> trackMetadataList, PlaylistCollection playlists)
     {
 #pragma warning disable Harmony003 // Harmony non-ref patch parameters modified
-        foreach (var playlist in playlists.Playlists())
+        foreach (var playlist in playlists.Playlists().Select(playlist => playlist.Playlist))
 #pragma warning restore Harmony003 // Harmony non-ref patch parameters modified
         {
-            var playlistCount = playlist.Playlist.Tracks.Count;
-            if (playlistCount >= playlist.Playlist.MinSizeToShow)
+            var playlistCount = playlist.Tracks.Count;
+            if (playlistCount >= playlist.MinSizeToShow)
             {
-                trackMetadataList.Add(new MutableTrackMetadata(playlist.Playlist.Metadata)
+                trackMetadataList.Add(new MutableTrackMetadata(playlist.Metadata)
                 {
-                    AlbumArtUrl = playlistCount > 0 ? playlist.Playlist.Tracks[0].AlbumArtUrl : null,
+                    AlbumArtUrl = playlistCount > 0 ? playlist.Tracks[0].AlbumArtUrl : null,
                 });
             }
         }
@@ -463,9 +460,9 @@ internal static class CustomTracksSelectionSceneControllerPatch
             });
     }
 
-    private struct PlaylistCollection
+    private readonly struct PlaylistCollection
     {
-        private Dictionary<string, Playlist> _playlists = [];
+        private readonly Dictionary<string, Playlist> _playlists = [];
 
         public PlaylistCollection(
             List<ITrackMetadata> trackMetadatas,
@@ -477,22 +474,20 @@ internal static class CustomTracksSelectionSceneControllerPatch
             BuildPlaylists(trackMetadatas, getKey, minSizeToShow, parseNames);
         }
 
-        public bool Contains(string playlistName)
-        {
-            return _playlists.ContainsKey(playlistName);
-        }
-
-        public Playlist Get(string playlistName)
+        public readonly Playlist Get(string playlistName)
         {
             return _playlists[playlistName];
         }
 
-        public void Extend(PlaylistCollection other)
+        public readonly void Extend(PlaylistCollection other)
         {
-            _playlists = _playlists.Concat(other._playlists).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            foreach (var entry in other._playlists)
+            {
+                _playlists[entry.Key] = entry.Value;
+            }
         }
 
-        public void SetSortOrder(string playlistName, double sortOrder)
+        public readonly void SetSortOrder(string playlistName, double sortOrder)
         {
             var playlist = _playlists[playlistName];
             var newMetadata = new MutableTrackMetadata(playlist.Metadata)
@@ -502,7 +497,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
             _playlists[playlistName] = new Playlist(newMetadata, playlist.Tracks, playlist.MinSizeToShow);
         }
 
-        public IEnumerable<(string Name, Playlist Playlist)> Playlists()
+        public readonly IEnumerable<(string Name, Playlist Playlist)> Playlists()
         {
             foreach (KeyValuePair<string, Playlist> entry in _playlists)
             {
@@ -578,9 +573,8 @@ internal static class CustomTracksSelectionSceneControllerPatch
                 }
             }
 
-            foreach (KeyValuePair<string, List<ITrackMetadata>> entry in playlists)
+            foreach (var playlistName in playlists.Select(entry => entry.Key))
             {
-                var playlistName = entry.Key;
                 var playlist = playlists[playlistName];
                 var length = ComputePlaylistLentgh(playlist);
                 var meanBpm = ComputePlaylistMeanBpm(playlist);
@@ -590,18 +584,11 @@ internal static class CustomTracksSelectionSceneControllerPatch
         }
     }
 
-    private struct Playlist
+    private readonly struct Playlist(ITrackMetadata metadata, List<ITrackMetadata> tracks, int minSizeToShow)
     {
-        public ITrackMetadata Metadata { get; }
-        public List<ITrackMetadata> Tracks { get; }
-        public int MinSizeToShow { get; }
-
-        public Playlist(ITrackMetadata metadata, List<ITrackMetadata> tracks, int minSizeToShow)
-        {
-            Metadata = metadata;
-            Tracks = tracks;
-            MinSizeToShow = minSizeToShow;
-        }
+        public ITrackMetadata Metadata { get; } = metadata;
+        public List<ITrackMetadata> Tracks { get; } = tracks;
+        public int MinSizeToShow { get; } = minSizeToShow;
     }
 
     private struct SelectedPlaylist
@@ -623,7 +610,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
             Playlist = null;
         }
 
-        public bool HasPlaylist()
+        public readonly bool HasPlaylist()
         {
             return Playlist is not null;
         }

@@ -2,16 +2,16 @@ using BepInEx.Configuration;
 
 namespace RiftOfTheNecroDancerPlaylists;
 
-internal static class UserConfig
+internal class UserConfig
 {
-    public static ConfigEntry<int> MinTracksToShowArtistPlaylist;
-    public static ConfigEntry<int> MinTracksToShowCreatorPlaylist;
-    public static ConfigEntry<bool> ShowUncompletedTracksPlaylist;
-    public static ConfigEntry<bool> TrackInAllDifficulties;
-    public static ConfigEntry<bool> RoundBpm;
-    public static ConfigEntry<bool> TurnOnModOnForNonTestedVersion;
+    public ConfigEntry<int> MinTracksToShowArtistPlaylist;
+    public ConfigEntry<int> MinTracksToShowCreatorPlaylist;
+    public ConfigEntry<bool> ShowUncompletedTracksPlaylist;
+    public ConfigEntry<bool> TrackInAllDifficulties;
+    public ConfigEntry<bool> RoundBpm;
+    public ConfigEntry<bool> TurnOnModOnForNonTestedVersion;
 
-    public static void Initialize(ConfigFile config)
+    public void Initialize(ConfigFile config)
     {
         MinTracksToShowArtistPlaylist = config.Bind(
             "Playlists", "Tracks to show artist playlist", 1,

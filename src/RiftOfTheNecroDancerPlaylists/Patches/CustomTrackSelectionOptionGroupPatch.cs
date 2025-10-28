@@ -10,7 +10,7 @@ namespace RiftOfTheNecroDancerPlaylists.Patches;
 [HarmonyPatch(typeof(CustomTrackSelectionOptionGroup))]
 internal static class CustomTrackSelectionOptionGroupPatch
 {
-    private static MethodInfo _navigateTrackList = Utils.Method<CustomTrackSelectionOptionGroup>("NavigateTrackList");
+    private static readonly MethodInfo _navigateTrackList = Utils.Method<CustomTrackSelectionOptionGroup>("NavigateTrackList");
 
     [HarmonyPrefix]
     [HarmonyPatch("NavigateTrackList")]

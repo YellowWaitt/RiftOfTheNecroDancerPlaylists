@@ -8,8 +8,8 @@ namespace RiftOfTheNecroDancerPlaylists;
 
 internal static class AlbumArtCache
 {
-    private static string _processedAlbumsDir = Path.Combine(Plugin.Path.Cache, "albums");
-    private static HashSet<string> _grayedOutAlbumArts = [];
+    private static readonly string _processedAlbumsDir = Path.Combine(Plugin.Path.Cache, "albums");
+    private static readonly HashSet<string> _grayedOutAlbumArts = [];
 
     public static void Initialize()
     {
