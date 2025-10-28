@@ -54,4 +54,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="RiftOfTheNecroDancerPlaylists.UnitTests" />
+  </ItemGroup>
+
 </Project>

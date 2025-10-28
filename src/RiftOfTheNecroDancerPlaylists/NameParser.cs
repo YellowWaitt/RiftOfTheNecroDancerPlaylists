@@ -21,7 +21,7 @@ internal class NameParser
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;
 
         string cleaned = Regex.Replace(input, @"[\(\)\[\]\{\}]", " ");
-        // cleaned = Regex.Replace(cleaned, @"\s+", " ").Trim();
+        cleaned = Regex.Replace(cleaned, @"\s+", " ");
         cleaned = cleaned.ToLowerInvariant();
         return cleaned;
     }
