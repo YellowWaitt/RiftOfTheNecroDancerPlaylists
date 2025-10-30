@@ -75,7 +75,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
         }
         else
         {
-            sortingOrderText.text += separator + Localizer.GetText($"ROTNDP_PlaylistMode{_playlistMode.ToString()}Label");
+            sortingOrderText.text += separator + Localizer.GetText($"ROTNDP_PlaylistMode{_playlistMode}Label");
         }
     }
 
@@ -220,7 +220,10 @@ internal static class CustomTracksSelectionSceneControllerPatch
         switch (_playlistMode)
         {
             case PlaylistMode.NoPlaylists:
-                _playlistCollection = new PlaylistCollection(____customTrackMetadatas, (track) => _allPlaylistId, 0);
+                _playlistCollection = new PlaylistCollection(
+                    ____customTrackMetadatas,
+                    (track) => track.Category == TrackCategory.UgcLocal ? null : _allPlaylistId
+                );
                 break;
             case PlaylistMode.ArtistPlaylists:
                 _playlistCollection = new PlaylistCollection(
@@ -240,6 +243,10 @@ internal static class CustomTracksSelectionSceneControllerPatch
                 );
                 AddDefaultPlaylists(____customTrackMetadatas);
                 break;
+        }
+        if (_selectedPlaylist.HasPlaylist() && !_playlistCollection.Contains(_selectedPlaylist.Playlist))
+        {
+            _selectedPlaylist.Unslect();
         }
         return true;
     }
@@ -367,7 +374,10 @@ internal static class CustomTracksSelectionSceneControllerPatch
             switch (_playlistMode)
             {
                 case PlaylistMode.NoPlaylists:
-                    DisplayTracks(ref trackMetadataList, _playlistCollection.Get(_allPlaylistId), ____selectedDifficulty, ____sortingOrder);
+                    if (_playlistCollection.Contains(_allPlaylistId))
+                    {
+                        DisplayTracks(ref trackMetadataList, _playlistCollection.Get(_allPlaylistId), ____selectedDifficulty, ____sortingOrder);
+                    }
                     break;
                 case PlaylistMode.ArtistPlaylists:
                     DisplayPlaylists(ref trackMetadataList, _playlistCollection);
@@ -443,7 +453,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
     private static void AddSteamWorkshopAndEditorPlaceholders(ref List<ITrackMetadata> trackMetadataList)
     {
         trackMetadataList.Add(
-            new PlaceholderUgcTrackMetadata()
+            new PlaceholderUgcTrackMetadata
             {
                 TrackName = Localizer.GetText("CustomMusicBrowseSteamWorkshop"),
                 ArtistName = Localizer.GetText("CustomMusicBrowseSteamWorkshopDesc"),
@@ -451,7 +461,7 @@ internal static class CustomTracksSelectionSceneControllerPatch
                 SortOrder = -2.0
             });
         if (SteamWorkshopUgcTrackProvider.IsEditorAvailable)
-            trackMetadataList.Add(new PlaceholderUgcTrackMetadata()
+            trackMetadataList.Add(new PlaceholderUgcTrackMetadata
             {
                 TrackName = Localizer.GetText("CustomMusicOpenLevelEditor"),
                 ArtistName = Localizer.GetText("CustomMusicOpenLevelEditorDesc"),
@@ -474,6 +484,11 @@ internal static class CustomTracksSelectionSceneControllerPatch
             BuildPlaylists(trackMetadatas, getKey, minSizeToShow, parseNames);
         }
 
+        public readonly bool Contains(string playlistName)
+        {
+            return _playlists.ContainsKey(playlistName);
+        }
+
         public readonly Playlist Get(string playlistName)
         {
             return _playlists[playlistName];
@@ -489,12 +504,14 @@ internal static class CustomTracksSelectionSceneControllerPatch
 
         public readonly void SetSortOrder(string playlistName, double sortOrder)
         {
-            var playlist = _playlists[playlistName];
-            var newMetadata = new MutableTrackMetadata(playlist.Metadata)
+            if (_playlists.TryGetValue(playlistName, out var playlist))
             {
-                SortOrder = sortOrder
-            };
-            _playlists[playlistName] = new Playlist(newMetadata, playlist.Tracks, playlist.MinSizeToShow);
+                var newMetadata = new MutableTrackMetadata(playlist.Metadata)
+                {
+                    SortOrder = sortOrder
+                };
+                _playlists[playlistName] = new Playlist(newMetadata, playlist.Tracks, playlist.MinSizeToShow);
+            }
         }
 
         public readonly IEnumerable<(string Name, Playlist Playlist)> Playlists()
