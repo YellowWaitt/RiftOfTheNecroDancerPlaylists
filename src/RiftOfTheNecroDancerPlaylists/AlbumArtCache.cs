@@ -23,9 +23,19 @@ internal static class AlbumArtCache
 
     private static Texture2D LoadAlbumArt(string original)
     {
+        byte[] bytes;
+        try
+        {
+            bytes = File.ReadAllBytes(original);
+        }
+        catch (Exception)
+        {
+            // This happen when the track is downloading.
+            // We just ignore it and everything goes fine.
+            return null;
+        }
         var albumArt = new Texture2D(1, 1);
-        albumArt.LoadImage(File.ReadAllBytes(original));
-        return albumArt;
+        return albumArt.LoadImage(bytes) ? albumArt : null;
     }
 
     private static Texture2D ConvertToGrayscale(Texture2D original)
@@ -54,12 +64,16 @@ internal static class AlbumArtCache
         if (!_grayedOutAlbumArts.Contains(processedName)
             || File.GetLastWriteTime(trackAlbumPath) > File.GetLastWriteTime(processedPath))
         {
-            _grayedOutAlbumArts.Add(processedName);
             var original = LoadAlbumArt(trackAlbumPath);
+            if (original is null)
+            {
+                return track.AlbumArtUrl;
+            }
             var gray = ConvertToGrayscale(original);
             File.WriteAllBytes(processedPath, gray.EncodeToPNG());
             UnityEngine.Object.Destroy(original);
             UnityEngine.Object.Destroy(gray);
+            _grayedOutAlbumArts.Add(processedName);
         }
         return processedPath;
     }
