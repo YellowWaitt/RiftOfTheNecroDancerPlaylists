@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+### Fixed
+
+- Some big issues that arise when attempting to access empty playlists :
+  - Infinite screen loading.
+  - Custom music menu not responding to inputs.
+
 ## 0.1.1
 
 ### Added
