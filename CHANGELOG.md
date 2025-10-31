@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+Support for game version 1.10.0.
+
 ## 0.1.2
 
 ### Fixed

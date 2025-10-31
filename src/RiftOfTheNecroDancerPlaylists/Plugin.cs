@@ -18,7 +18,7 @@ public class Plugin : BaseUnityPlugin
     internal static readonly UserConfig UserConfig = new();
     internal static readonly Settings Settings = Settings.Deserialize();
 
-    private static string[] _gameTestedVersions = ["1.8.0"];
+    private static string[] _compatibleVersions = ["1.8.0", "1.10.0"];
 
     private void Awake()
     {
@@ -28,7 +28,7 @@ public class Plugin : BaseUnityPlugin
         UserConfig.Initialize(Config);
 
         var gameVersion = BuildInfoHelper.Instance.BuildId.Split('-')[0];
-        var modIsCompatible = _gameTestedVersions.Contains(gameVersion);
+        var modIsCompatible = _compatibleVersions.Contains(gameVersion);
         if (!UserConfig.TurnOnModOnForNonTestedVersion.Value && !modIsCompatible)
         {
             Logger.LogWarning(
