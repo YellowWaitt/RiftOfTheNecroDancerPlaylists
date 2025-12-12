@@ -18,7 +18,7 @@ public class Plugin : BaseUnityPlugin
     internal static readonly UserConfig UserConfig = new();
     internal static readonly Settings Settings = Settings.Deserialize();
 
-    private static string[] _compatibleVersions = ["1.8.0", "1.10.0"];
+    private static string[] _compatibleVersions = ["1.8.0", "1.10.0", "1.11.1"];
 
     private void Awake()
     {
@@ -52,7 +52,7 @@ public class Plugin : BaseUnityPlugin
         var harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         harmony.PatchAll();
 
-        Logger.LogMessage($"{MyPluginInfo.PLUGIN_NAME} v{MyPluginInfo.PLUGIN_VERSION} is loaded !");
+        Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} v{MyPluginInfo.PLUGIN_VERSION} is loaded !");
     }
 
     internal struct Paths
