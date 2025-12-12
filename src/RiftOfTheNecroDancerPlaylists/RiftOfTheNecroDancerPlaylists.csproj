@@ -19,6 +19,8 @@
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+    <PackageReference Include="StbImageSharp" Version="2.30.15" />
+    <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
     <PackageReference Include="UnityEngine.Modules" Version="2021.3.43" IncludeAssets="compile" />
   </ItemGroup>
 
@@ -26,6 +28,20 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2"
       PrivateAssets="all" />
   </ItemGroup>
+
+  <Target Name="CopyDependencyDll" AfterTargets="Build">
+    <ItemGroup>
+      <FilteredAssemblies Include="@(ReferencePath)"
+        Condition="'%(Filename)' == 'StbImageSharp'
+                OR '%(Filename)' == 'StbImageWriteSharp'" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(FilteredAssemblies)"
+      DestinationFolder="$(OutputPath)"
+      SkipUnchangedFiles="true" />
+  </Target>
+
 
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

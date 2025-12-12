@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Shared.TrackData;
-using UnityEngine;
+using StbImageSharp;
+using StbImageWriteSharp;
 
 namespace RiftOfTheNecroDancerPlaylists;
 
 internal static class AlbumArtCache
 {
     private static readonly string _processedAlbumsDir = Path.Combine(Plugin.Path.Cache, "albums");
+    private static readonly object _lock = new();
     private static readonly HashSet<string> _grayedOutAlbumArts = [];
+    private static readonly HashSet<string> _processing = [];
 
     public static void Initialize()
     {
@@ -21,60 +25,70 @@ internal static class AlbumArtCache
         }
     }
 
-    private static Texture2D LoadAlbumArt(string original)
-    {
-        byte[] bytes;
-        try
-        {
-            bytes = File.ReadAllBytes(original);
-        }
-        catch (Exception)
-        {
-            // This happen when the track is downloading.
-            // We just ignore it and everything goes fine.
-            return null;
-        }
-        var albumArt = new Texture2D(1, 1);
-        return albumArt.LoadImage(bytes) ? albumArt : null;
-    }
-
-    private static Texture2D ConvertToGrayscale(Texture2D original)
-    {
-        var grayscale = new Texture2D(original.width, original.height);
-        var pixels = original.GetPixels();
-
-        for (int i = 0; i < pixels.Length; i++)
-        {
-            float grayValue = pixels[i].r * 0.3f + pixels[i].g * 0.59f + pixels[i].b * 0.11f;
-            grayValue = grayValue * 0.8f + 0.1f;
-            pixels[i] = new Color(grayValue, grayValue, grayValue, pixels[i].a);
-        }
-
-        grayscale.SetPixels(pixels);
-        grayscale.Apply();
-        return grayscale;
-    }
-
-    // TODO: find a way to not make the game freeze while this is running for high number of albums
     public static string GrayedOutAlbumArt(ITrackMetadata track)
     {
         var processedName = Path.GetFileName(Path.GetDirectoryName(track.AlbumArtUrl));
         var processedPath = Path.ChangeExtension(Path.Combine(_processedAlbumsDir, processedName), ".png");
         var trackAlbumPath = new Uri(track.AlbumArtUrl).LocalPath;
-        if (!_grayedOutAlbumArts.Contains(processedName)
-            || File.GetLastWriteTime(trackAlbumPath) > File.GetLastWriteTime(processedPath))
+
+        lock (_lock)
         {
-            var original = LoadAlbumArt(trackAlbumPath);
-            if (original is null)
+            if (_grayedOutAlbumArts.Contains(processedName)
+                && File.GetLastWriteTime(trackAlbumPath) <= File.GetLastWriteTime(processedPath))
+            {
+                return processedPath;
+            }
+            if (_processing.Contains(processedName))
             {
                 return track.AlbumArtUrl;
             }
-            var gray = ConvertToGrayscale(original);
-            File.WriteAllBytes(processedPath, gray.EncodeToPNG());
-            UnityEngine.Object.Destroy(original);
-            UnityEngine.Object.Destroy(gray);
-            _grayedOutAlbumArts.Add(processedName);
+            _processing.Add(processedName);
         }
-        return processedPath;
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                var bytes = await File.ReadAllBytesAsync(trackAlbumPath);
+                var image = ImageResult.FromMemory(bytes, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+                var pixels = image.Data;
+
+                for (int i = 0; i < pixels.Length; i += 4)
+                {
+                    var r = pixels[i];
+                    var g = pixels[i + 1];
+                    var b = pixels[i + 2];
+
+                    var gray = r * 0.3f + g * 0.59f + b * 0.11f;
+                    gray = gray * 0.8f + 0.1f;
+                    var grayByte = (byte)gray;
+
+                    pixels[i] = grayByte;
+                    pixels[i + 1] = grayByte;
+                    pixels[i + 2] = grayByte;
+                }
+
+                var writer = new ImageWriter();
+                using var output = File.OpenWrite(processedPath);
+                writer.WritePng(pixels, image.Width, image.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, output);
+
+                lock (_lock)
+                {
+                    _grayedOutAlbumArts.Add(processedName);
+                    _processing.Remove(processedName);
+                }
+            }
+            catch (Exception e)
+            {
+                Plugin.Logger.LogWarning($"Exception while processing {processedName}: {e.Message}");
+                if (File.Exists(processedPath)) File.Delete(processedPath);
+                lock (_lock)
+                {
+                    _processing.Remove(processedName);
+                }
+            }
+        });
+
+        return track.AlbumArtUrl;
     }
 }
