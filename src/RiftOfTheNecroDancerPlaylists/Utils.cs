@@ -1,5 +1,5 @@
 using System;
-using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
 namespace RiftOfTheNecroDancerPlaylists;
@@ -27,22 +27,18 @@ internal static class Utils
         if (string.IsNullOrWhiteSpace(duration))
             return TimeSpan.Zero;
 
-        string[] formats =
-        [
-            @"h\:m\:s",
-            @"hh\:mm\:ss",
-            @"m\:s",
-            @"mm\:ss",
-            @"s",
-            @"ss"
-        ];
-
-        if (TimeSpan.TryParseExact(duration.Trim(), formats, CultureInfo.InvariantCulture, out TimeSpan result))
+        var parts = duration.Split(':');
+        var seconds = 0;
+        foreach (var (part, factor) in parts.Zip([1, 60, 60], (p, f) => (p, f)))
         {
-            return result;
+            if (!int.TryParse(part, out int value))
+            {
+                return TimeSpan.Zero;
+            }
+            seconds = seconds * factor + value;
         }
 
-        return TimeSpan.Zero;
+        return TimeSpan.FromSeconds(seconds);
     }
 
     public static string FormatDuration(TimeSpan duration)
