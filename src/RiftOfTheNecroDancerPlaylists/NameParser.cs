@@ -8,9 +8,10 @@ namespace RiftOfTheNecroDancerPlaylists;
 
 internal class NameParser
 {
-    private static readonly string[] Separators = {
-        ",", ";", "/", "\\", " ft ", " ft. ", " feat ", " feat. ", " featuring ", " x ", " & ", " + ", " - ", " · "
-    };
+    private static readonly string[] Separators1 = [
+        ",", ";", "/", "\\", " ft ", " ft. ", " feat ", " feat. ", " featuring ", " & ", " + ", " - ", " · "
+    ];
+    private static readonly string[] Separators2 = [" x "];
 
     private readonly HashSet<string> _seenNames = [];
     private readonly List<(string OriginalInput, string Abbreviation)> _pendingAbbreviations = [];
@@ -41,6 +42,15 @@ internal class NameParser
         return input.Contains('.');
     }
 
+    private static IEnumerable<string> Split(string input)
+    {
+        return input
+            .Split(Separators1, StringSplitOptions.RemoveEmptyEntries)
+            .SelectMany((part) => AddSpaceAfterLastDot(part.Trim())
+                .Split(Separators2, StringSplitOptions.RemoveEmptyEntries)
+            );
+    }
+
     public void ParseName(string input)
     {
         var cleanedInput = CleanString(input);
@@ -50,10 +60,7 @@ internal class NameParser
             return;
         }
 
-        var names = cleanedInput
-            .Split(Separators, StringSplitOptions.RemoveEmptyEntries)
-            .Select((part) => AddSpaceAfterLastDot(part.Trim()));
-        foreach (var name in names)
+        foreach (var name in Split(cleanedInput))
         {
             if (IsAbbreviation(name))
             {
@@ -71,7 +78,7 @@ internal class NameParser
     {
         foreach (var (OriginalInput, Abbreviation) in _pendingAbbreviations)
         {
-            var parts = Abbreviation.Split(".").Select((part) => part.Trim()).ToArray();
+            var parts = Abbreviation.Split('.').Select((part) => part.Trim()).ToArray();
             if (parts.Count() < 2)
             {
                 _matches.GetOrCreate(OriginalInput).Add(Abbreviation);
