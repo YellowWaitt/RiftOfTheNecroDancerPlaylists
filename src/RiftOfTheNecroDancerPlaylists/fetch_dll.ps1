@@ -1,6 +1,7 @@
 $gamePath = "RiftOfTheNecroDancerOSTVolume1\RiftOfTheNecroDancer_Data"
 $dllList = @(
     "Assembly-CSharp.dll",
+    "Newtonsoft.Json.dll",
     "TicToc.Localization.dll",
     "UnityEngine.dll",
     "UnityEngine.UI.dll",

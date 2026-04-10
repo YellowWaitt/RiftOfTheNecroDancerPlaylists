@@ -47,6 +47,9 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>lib\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>lib\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="TicToc.Localization">
       <HintPath>lib\TicToc.Localization.dll</HintPath>
     </Reference>

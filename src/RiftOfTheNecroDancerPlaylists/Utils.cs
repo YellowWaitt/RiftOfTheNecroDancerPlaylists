@@ -1,6 +1,9 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace RiftOfTheNecroDancerPlaylists;
 
@@ -51,5 +54,16 @@ internal static class Utils
             return $"{hours}:{minutes:D2}:{seconds:D2}";
         else
             return $"{minutes}:{seconds:D2}";
+    }
+
+    public static T Deserialize<T>(string filePath) where T : new()
+    {
+        if (!File.Exists(filePath))
+        {
+            return new T();
+        }
+
+        var json = File.ReadAllText(filePath, Encoding.UTF8);
+        return JsonConvert.DeserializeObject<T>(json);
     }
 }

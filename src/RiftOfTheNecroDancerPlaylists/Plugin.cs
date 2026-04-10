@@ -52,7 +52,7 @@ public class Plugin : BaseUnityPlugin
         var harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         harmony.PatchAll();
 
-        Logger.LogInfo($"{MyPluginInfo.PLUGIN_NAME} v{MyPluginInfo.PLUGIN_VERSION} is loaded !");
+        Logger.LogMessage($"{MyPluginInfo.PLUGIN_NAME} v{MyPluginInfo.PLUGIN_VERSION} is loaded !");
     }
 
     internal struct Paths
@@ -61,6 +61,7 @@ public class Plugin : BaseUnityPlugin
         public string Cache;
         public string Assets;
         public string SettingsJson;
+        public string PlaylistsJson;
 
         public Paths()
         {
@@ -68,6 +69,7 @@ public class Plugin : BaseUnityPlugin
             Cache = System.IO.Path.Combine(Plugin, "cache");
             Assets = System.IO.Path.Combine(Plugin, "assets");
             SettingsJson = System.IO.Path.Combine(Plugin, "settings.json");
+            PlaylistsJson = System.IO.Path.Combine(Plugin, "playlists.json");
 
             Directory.CreateDirectory(Cache);
         }
