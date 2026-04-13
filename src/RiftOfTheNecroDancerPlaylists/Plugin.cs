@@ -18,7 +18,8 @@ public class Plugin : BaseUnityPlugin
     internal static readonly UserConfig UserConfig = new();
     internal static readonly Settings Settings = Settings.Deserialize();
 
-    private static string[] _compatibleVersions = ["1.8.0", "1.10.0", "1.11.1"];
+    private static readonly string[] _uncompatibleVersions = ["1.8", "1.10", "1.11", "1.12", "1.13"];
+    private static readonly string[] _compatibleVersions = ["1.14"];
 
     private void Awake()
     {
@@ -28,6 +29,15 @@ public class Plugin : BaseUnityPlugin
         UserConfig.Initialize(Config);
 
         var gameVersion = BuildInfoHelper.Instance.BuildId.Split('-')[0];
+        gameVersion = gameVersion.Substring(0, gameVersion.LastIndexOf('.'));
+        var modIsUncompatible = _uncompatibleVersions.Contains(gameVersion);
+        if (modIsUncompatible)
+        {
+            Logger.LogError(
+                $"{MyPluginInfo.PLUGIN_NAME} v{MyPluginInfo.PLUGIN_VERSION} is too recent for current game version ({gameVersion}), update your game."
+            );
+            return;
+        }
         var modIsCompatible = _compatibleVersions.Contains(gameVersion);
         if (!UserConfig.TurnOnModOnForNonTestedVersion.Value && !modIsCompatible)
         {
@@ -46,7 +56,6 @@ public class Plugin : BaseUnityPlugin
             );
         }
 
-        AlbumArtCache.Initialize();
         Localizer.AddKeysFromLocalFile(System.IO.Path.Combine(Path.Assets, "localization.csv"));
 
         var harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
@@ -58,7 +67,6 @@ public class Plugin : BaseUnityPlugin
     internal struct Paths
     {
         public string Plugin;
-        public string Cache;
         public string Assets;
         public string SettingsJson;
         public string PlaylistsJson;
@@ -66,12 +74,9 @@ public class Plugin : BaseUnityPlugin
         public Paths()
         {
             Plugin = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            Cache = System.IO.Path.Combine(Plugin, "cache");
             Assets = System.IO.Path.Combine(Plugin, "assets");
             SettingsJson = System.IO.Path.Combine(Plugin, "settings.json");
             PlaylistsJson = System.IO.Path.Combine(Plugin, "playlists.json");
-
-            Directory.CreateDirectory(Cache);
         }
     }
 }

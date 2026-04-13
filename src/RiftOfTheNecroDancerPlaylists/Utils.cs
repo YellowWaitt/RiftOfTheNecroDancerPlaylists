@@ -44,6 +44,18 @@ internal static class Utils
         return TimeSpan.FromSeconds(seconds);
     }
 
+    public static float RoundBPM(float? bpm)
+    {
+        if (Plugin.UserConfig.RoundBpm.Value)
+        {
+            return (float)Math.Round(bpm ?? 0f, 0);
+        }
+        else
+        {
+            return bpm ?? 0f;
+        }
+    }
+
     public static string FormatDuration(TimeSpan duration)
     {
         int hours = duration.Hours + duration.Days * 24;

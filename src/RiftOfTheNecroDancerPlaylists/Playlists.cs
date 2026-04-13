@@ -18,6 +18,7 @@ internal class PlaylistsJson
 internal class PlaylistJson
 {
     public string Name;
+    public string WorkshopId;
     public string Cover;
     public List<string> Tracks;
 }
